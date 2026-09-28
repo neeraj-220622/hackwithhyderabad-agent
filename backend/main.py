@@ -3,15 +3,41 @@ HackwithHyderabad Agent — FastAPI Backend Entry Point
 Part 0: Foundation only. No agent, LLM, or hindsight logic yet.
 """
 
+from contextlib import asynccontextmanager
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.api.routes import router as api_router
+from backend.api.agent_routes import router as agent_router
+from backend.agent.llm import LLMService, LLMConfigError
+from backend.memory.hindsight import HindsightMemory, HindsightConfigError
+from backend.agent.agent import Agent
+
+logger = logging.getLogger(__name__)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Initialize core services at startup
+    try:
+        llm = LLMService()
+        memory = HindsightMemory()
+        app.state.agent = Agent(llm=llm, memory=memory)
+        logger.info("Agent Core initialized successfully.")
+    except (LLMConfigError, HindsightConfigError) as e:
+        logger.warning(f"Agent Core initialization skipped or failed: {e}")
+        app.state.agent = None
+    
+    yield
+    # Shutdown logic if needed
+
 
 app = FastAPI(
     title="HackwithHyderabad Agent",
     description="Incremental AI agent backend for HackwithHyderabad 3.0.",
     version="0.1.0",
+    lifespan=lifespan,
 )
 
 # ---------------------------------------------------------------------------
@@ -29,3 +55,4 @@ app.add_middleware(
 # Routers — add new route modules here as the project grows
 # ---------------------------------------------------------------------------
 app.include_router(api_router, prefix="/api")
+app.include_router(agent_router, prefix="/api/agent", tags=["agent"])

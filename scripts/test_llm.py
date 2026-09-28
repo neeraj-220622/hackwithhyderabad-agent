@@ -57,7 +57,7 @@ def main() -> None:
 
     try:
         llm = LLMService()
-        response = llm.generate(TEST_PROMPT)
+        response = llm.generate_sync(TEST_PROMPT)
     except (LLMConfigError, LLMProviderError) as exc:
         print(f'  [FAIL] {exc}')
         print(SEP)

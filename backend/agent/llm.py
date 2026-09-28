@@ -8,7 +8,7 @@ Usage (from anywhere in the backend):
     from backend.agent.llm import LLMService
 
     llm = LLMService()
-    response = llm.generate("Tell me a joke.")
+    response = await llm.generate("You are an assistant.", "Tell me a joke.")
 
 The Agent Core will always call LLMService — it never imports Groq directly.
 Adding a new provider later means adding a branch here, not touching the Agent Core.
@@ -31,9 +31,27 @@ class LLMProviderError(Exception):
 
 # ── Provider implementations ──────────────────────────────────────────────────
 
+async def _call_groq_async(system_prompt: str, user_prompt: str, model: str, api_key: str) -> str:
+    """Send a prompt to the Groq API asynchronously and return the text response."""
+    from groq import AsyncGroq  # imported lazily so other providers don't need groq installed
+
+    client = AsyncGroq(api_key=api_key)
+    completion = await client.chat.completions.create(
+        model=model,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
+        ],
+    )
+    text = completion.choices[0].message.content
+    if not text or not text.strip():
+        raise LLMProviderError("Groq returned an empty response.")
+    return text.strip()
+
+
 def _call_groq(prompt: str, model: str, api_key: str) -> str:
-    """Send a prompt to the Groq API and return the text response."""
-    from groq import Groq  # imported lazily so other providers don't need groq installed
+    """Synchronous fallback for smoke tests."""
+    from groq import Groq
 
     client = Groq(api_key=api_key)
     completion = client.chat.completions.create(
@@ -46,8 +64,12 @@ def _call_groq(prompt: str, model: str, api_key: str) -> str:
     return text.strip()
 
 
-# Map provider name → callable(prompt, model, api_key) → str
-_PROVIDERS: dict[str, object] = {
+# Map provider name → callable
+_PROVIDERS_ASYNC: dict[str, object] = {
+    "groq": _call_groq_async,
+}
+
+_PROVIDERS_SYNC: dict[str, object] = {
     "groq": _call_groq,
 }
 
@@ -59,7 +81,7 @@ class LLMService:
     Thin wrapper around an LLM provider.
 
     Configuration is read from the global config object (which reads from .env).
-    The caller only ever calls `generate(prompt)` — provider details are hidden.
+    The caller only ever calls `generate()` — provider details are hidden.
     """
 
     def __init__(self) -> None:
@@ -73,21 +95,23 @@ class LLMService:
                 f"Add it to your .env file (provider: {self._provider_name})."
             )
 
-        if self._provider_name not in _PROVIDERS:
-            supported = ", ".join(_PROVIDERS.keys())
+        if self._provider_name not in _PROVIDERS_ASYNC:
+            supported = ", ".join(_PROVIDERS_ASYNC.keys())
             raise LLMConfigError(
                 f"Unknown LLM provider '{self._provider_name}'. "
                 f"Supported providers: {supported}."
             )
 
-        self._call = _PROVIDERS[self._provider_name]
+        self._call_async = _PROVIDERS_ASYNC[self._provider_name]
+        self._call_sync = _PROVIDERS_SYNC[self._provider_name]
 
-    def generate(self, prompt: str) -> str:
+    async def generate(self, system_prompt: str, user_prompt: str) -> str:
         """
-        Send a prompt to the configured LLM and return the response text.
+        Send a system and user prompt to the configured LLM asynchronously.
 
         Args:
-            prompt: The user prompt string.
+            system_prompt: Instructions for the model.
+            user_prompt: The user's input.
 
         Returns:
             The model's response as a plain string.
@@ -95,18 +119,32 @@ class LLMService:
         Raises:
             LLMProviderError: If the API call fails or returns an empty response.
         """
-        if not prompt or not prompt.strip():
-            raise ValueError("Prompt must not be empty.")
+        if not user_prompt or not user_prompt.strip():
+            raise ValueError("user_prompt must not be empty.")
 
         try:
-            return self._call(prompt, self._model, self._api_key)
+            return await self._call_async(system_prompt, user_prompt, self._model, self._api_key)
         except LLMConfigError:
             raise
         except LLMProviderError:
             raise
         except Exception as exc:
-            # Re-raise as LLMProviderError so callers only need to catch one type.
-            # Never include the api_key in the message.
+            raise LLMProviderError(
+                f"LLM request failed ({self._provider_name}/{self._model}): {exc}"
+            ) from exc
+
+    def generate_sync(self, prompt: str) -> str:
+        """Legacy synchronous generate for smoke tests."""
+        if not prompt or not prompt.strip():
+            raise ValueError("Prompt must not be empty.")
+
+        try:
+            return self._call_sync(prompt, self._model, self._api_key)
+        except LLMConfigError:
+            raise
+        except LLMProviderError:
+            raise
+        except Exception as exc:
             raise LLMProviderError(
                 f"LLM request failed ({self._provider_name}/{self._model}): {exc}"
             ) from exc
