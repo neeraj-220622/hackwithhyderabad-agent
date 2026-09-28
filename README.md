@@ -8,6 +8,7 @@
 
 - **Part 0** — Project foundation, FastAPI skeleton, health endpoint, React status page.
 - **Part 1** — Provider-agnostic LLM service (Groq, configurable model).
+- **Part 2** — Hindsight memory service integration.
 
 ---
 
@@ -41,13 +42,15 @@ hackathon-agent/
 │   │   └── routes.py      ← FastAPI routes (GET /api/health)
 │   ├── agent/
 │   │   └── llm.py         ← LLMService (Part 1) ✅
-│   ├── memory/            ← Hindsight memory (future)
+│   ├── memory/            
+│   │   └── hindsight.py   ← HindsightMemory (Part 2) ✅
 │   ├── tools/             ← Tool / function calling (future)
 │   ├── data/sample_data/
-│   ├── config.py          ← Central env-var config (Part 1) ✅
+│   ├── config.py          ← Central env-var config (Part 1, 2) ✅
 │   └── main.py            ← FastAPI app entry point
 ├── scripts/
-│   └── test_llm.py        ← LLM smoke test (Part 1) ✅
+│   ├── test_llm.py        ← LLM smoke test (Part 1) ✅
+│   └── test_hindsight.py  ← Hindsight smoke test (Part 2) ✅
 ├── .env.example
 ├── .gitignore
 ├── README.md
@@ -120,7 +123,7 @@ The application is being built incrementally. Domain-specific functionality will
 |------|-------------------------------------------|-------------|
 | 0    | Foundation, project structure, health API | ✅ Complete |
 | 1    | LLM service integration (Groq)            | ✅ Complete |
-| 2    | Hindsight memory                          | 🔜 Pending  |
+| 2    | Hindsight memory                          | ✅ Complete |
 | 3    | Agent core                                | 🔜 Pending  |
 | 4    | Tool / function calling                   | 🔜 Pending  |
 | 5    | PS-specific functionality                 | 🔜 Pending  |
@@ -185,3 +188,35 @@ python scripts/test_llm.py
 ```
 
 If `LLM_API_KEY` is not set, the script prints setup instructions and exits cleanly.
+
+---
+
+## Part 2 — Hindsight Memory
+
+### Overview
+
+`backend/memory/hindsight.py` uses the official Hindsight SDK to provide memory capabilities to the application.
+Hindsight acts as the dedicated memory layer for the AI agent, allowing it to retain facts and recall them in future interactions.
+
+```
+Future Agent Core
+      ↓
+ HindsightMemory.remember(bank_id, content)  /  HindsightMemory.recall(bank_id, query)
+      ↓
+ Hindsight Server
+```
+
+### Configuration
+
+Hindsight connects using values set in `backend/config.py`:
+- `HINDSIGHT_URL`
+- `HINDSIGHT_API_KEY` (if required)
+
+### Smoke test
+
+```bash
+# From project root, with venv active
+python scripts/test_hindsight.py
+```
+
+This test stores a unique test memory (`HACKWITHHYDERABAD_HINDSIGHT_TEST_2026`) and immediately recalls it to verify connectivity and functionality. If `HINDSIGHT_URL` is not set, the script exits cleanly with setup instructions.
