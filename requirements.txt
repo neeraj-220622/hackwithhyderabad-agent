@@ -1,2 +1,6 @@
 fastapi
 uvicorn[standard]
+
+# Part 1 — LLM layer
+groq            # Groq SDK (OpenAI-compatible interface)
+python-dotenv   # Load .env into os.environ via backend/config.py
