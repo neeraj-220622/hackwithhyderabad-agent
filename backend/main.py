@@ -20,17 +20,22 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Initialize core services at startup
+    memory = None
     try:
         llm = LLMService()
         memory = HindsightMemory()
         app.state.agent = Agent(llm=llm, memory=memory)
+        app.state.memory = memory  # Keep reference for cleanup
         logger.info("Agent Core initialized successfully.")
     except (LLMConfigError, HindsightConfigError) as e:
         logger.warning(f"Agent Core initialization skipped or failed: {e}")
         app.state.agent = None
+        app.state.memory = None
     
     yield
-    # Shutdown logic if needed
+    # Shutdown logic
+    if app.state.memory:
+        await app.state.memory.close()
 
 
 app = FastAPI(

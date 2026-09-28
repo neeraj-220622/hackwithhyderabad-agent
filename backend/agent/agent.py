@@ -49,6 +49,7 @@ class Agent:
         memory_context = "No relevant previous memory."
         
         try:
+            await self._memory.ensure_bank(user_id)
             raw_memory = await self._memory.recall(bank_id=user_id, query=message)
             # STEP 3 — Extract useful recalled information
             # If the response string is not empty or "none" (depends on SDK)

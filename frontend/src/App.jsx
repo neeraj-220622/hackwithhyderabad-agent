@@ -1,92 +1,112 @@
-import { useState, useEffect, useCallback } from 'react'
-import './index.css'
+import React, { useState, useEffect } from "react";
+import Header from "./components/Header";
+import ChatWindow from "./components/ChatWindow";
+import MessageInput from "./components/MessageInput";
+import MemoryPanel from "./components/MemoryPanel";
+import { sendChatMessage, getMemory } from "./services/api";
+import "./App.css";
 
-const HEALTH_URL = '/api/health'
-const POLL_INTERVAL_MS = 15_000 // re-check every 15 s
+function App() {
+  const [messages, setMessages] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  
+  const [userId, setUserId] = useState("");
+  const [memories, setMemories] = useState([]);
+  const [isMemoryLoading, setIsMemoryLoading] = useState(false);
+  const [memoryError, setMemoryError] = useState(null);
 
-function StatusPill({ state }) {
-  const map = {
-    connected:    { label: 'Connected',    cls: 'connected'    },
-    disconnected: { label: 'Disconnected', cls: 'disconnected' },
-    checking:     { label: 'Checking…',    cls: 'checking'     },
-  }
-  const { label, cls } = map[state] ?? map.checking
-
-  return (
-    <span id="backend-status-pill" className={`status-pill ${cls}`}>
-      <span className="status-dot" />
-      {label}
-    </span>
-  )
-}
-
-export default function App() {
-  const [status, setStatus] = useState('checking')
-
-  const checkHealth = useCallback(async () => {
-    setStatus('checking')
+  const fetchMemories = async (uid) => {
+    setIsMemoryLoading(true);
+    setMemoryError(null);
     try {
-      const res = await fetch(HEALTH_URL, { signal: AbortSignal.timeout(5000) })
-      setStatus(res.ok ? 'connected' : 'disconnected')
-    } catch {
-      setStatus('disconnected')
+      const data = await getMemory(uid);
+      setMemories(data.memories || []);
+    } catch (err) {
+      if (err.status !== 404) {
+        setMemoryError("Failed to fetch memories.");
+      }
+    } finally {
+      setIsMemoryLoading(false);
     }
-  }, [])
+  };
 
-  // initial check + periodic re-poll
   useEffect(() => {
-    checkHealth()
-    const id = setInterval(checkHealth, POLL_INTERVAL_MS)
-    return () => clearInterval(id)
-  }, [checkHealth])
+    let storedId = localStorage.getItem("hackathon_user_id");
+    if (!storedId) {
+      storedId = "demo-user-" + Math.random().toString(36).substring(2, 9);
+      localStorage.setItem("hackathon_user_id", storedId);
+    }
+    setUserId(storedId);
+    fetchMemories(storedId);
+  }, []);
+
+  const handleClearChat = () => {
+    setMessages([]);
+    setError(null);
+  };
+
+  const handleSendMessage = async (text) => {
+    const userMsg = { sender: "user", text };
+    setMessages((prev) => [...prev, userMsg]);
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const result = await sendChatMessage(userId, text);
+      
+      const agentMsg = {
+        sender: "agent",
+        text: result.response,
+        memory_used: result.memory_used,
+        memory_context: result.memory_context
+      };
+      
+      setMessages((prev) => [...prev, agentMsg]);
+      
+      // Refresh memory panel after agent responds
+      fetchMemories(userId);
+    } catch (err) {
+      let errorText = "An error occurred while communicating with the agent.";
+      if (err.status === 400 || err.status === 422) {
+        errorText = "Invalid request sent to the server.";
+      } else if (err.status === 503) {
+        errorText = "Agent service is temporarily unavailable (Hindsight or LLM down).";
+      } else if (err.message) {
+        errorText = `Error: ${err.message}`;
+      }
+      
+      setError(errorText);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <main className="page">
-      <article className="card" role="main">
-
-        {/* ── Header ─────────────────────────────── */}
-        <header className="header">
-          <span className="badge">
-            <span className="badge-dot" />
-            HackwithHyderabad 3.0
-          </span>
-          <h1>HackwithHyderabad Agent</h1>
-          <p className="subtitle">
-            AI Agents That Learn Using Hindsight — Part 0: Foundation
-          </p>
-        </header>
-
-        <div className="divider" />
-
-        {/* ── Backend status ──────────────────────── */}
-        <section className="status-section" aria-label="Backend status">
-          <p className="status-label">Backend Status</p>
-
-          <div className="status-row">
-            <span className="status-name">FastAPI · /api/health</span>
-            <StatusPill state={status} />
-          </div>
-
-          {status === 'disconnected' && (
-            <button
-              id="retry-btn"
-              className="retry-btn"
-              onClick={checkHealth}
-              aria-label="Retry connection"
-            >
-              ↺ Retry
-            </button>
-          )}
-        </section>
-
-        <div className="divider" />
-
-        {/* ── Footer ─────────────────────────────── */}
-        <footer className="footer">
-          Agent core, LLM, and Hindsight will be added in future parts.
-        </footer>
-
-      </article>
-    </main>
-  )
+    <div className="app-container">
+      <Header onClearChat={handleClearChat} />
+      <div className="main-content">
+        <div className="chat-section">
+          <ChatWindow 
+            messages={messages} 
+            isLoading={isLoading} 
+            error={error} 
+          />
+          <MessageInput 
+            onSendMessage={handleSendMessage} 
+            disabled={isLoading} 
+          />
+        </div>
+        <div className="memory-section">
+          <MemoryPanel 
+            memories={memories} 
+            loading={isMemoryLoading}
+            error={memoryError}
+          />
+        </div>
+      </div>
+    </div>
+  );
 }
+
+export default App;

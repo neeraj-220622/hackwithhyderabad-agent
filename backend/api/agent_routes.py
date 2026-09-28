@@ -56,3 +56,44 @@ async def chat_endpoint(request: Request, body: AgentChatRequest):
         
         # Generic fallback for LLM or unexpected errors
         raise HTTPException(status_code=500, detail="Internal server error during agent execution.")
+
+@router.get("/memory/{user_id}", summary="Get User Memory")
+async def get_memory_endpoint(request: Request, user_id: str):
+    """
+    Retrieve all memories for a user.
+    """
+    user_id = user_id.strip()
+    if not user_id:
+        raise HTTPException(status_code=400, detail="user_id cannot be empty.")
+
+    memory = getattr(request.app.state, "memory", None)
+    
+    if not memory:
+        raise HTTPException(
+            status_code=503,
+            detail="Memory Core is not available."
+        )
+
+    try:
+        memories_list = await memory.get_memories(bank_id=user_id)
+        
+        # Map to a clean response format
+        formatted_memories = []
+        for m in memories_list:
+            formatted_memories.append({
+                "content": getattr(m, 'text', str(m)),
+                "type": getattr(m, 'fact_type', 'unknown'),
+                "id": getattr(m, 'id', None)
+            })
+            
+        return {
+            "user_id": user_id,
+            "memory_available": len(formatted_memories) > 0,
+            "memories": formatted_memories
+        }
+    except Exception as exc:
+        logger.error(f"Memory retrieval failed: {exc}")
+        error_msg = str(exc).lower()
+        if "hindsight" in error_msg or "memory" in error_msg:
+            raise HTTPException(status_code=503, detail="Hindsight memory service is currently unavailable.")
+        raise HTTPException(status_code=500, detail="Internal server error during memory retrieval.")

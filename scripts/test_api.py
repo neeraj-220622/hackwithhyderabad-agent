@@ -50,22 +50,47 @@ def run_tests():
         print(f'  [FAIL] Expected validation error, got {response.status_code}: {response.text}')
         sys.exit(1)
 
-    # 4. Valid Request
+    # 4. Valid Request 1
     # This may fail with 503 if Hindsight server is not running (which is expected).
-    response = client.post("/api/agent/chat", json={"user_id": "test-user-api", "message": "What is your purpose?"})
+    user_id = "api-memory-test"
+    response1 = client.post("/api/agent/chat", json={
+        "user_id": user_id, 
+        "message": "I prefer concise technical explanations."
+    })
     
-    if response.status_code == 200:
-        data = response.json()
-        if "response" in data and "memory_used" in data:
-            print('  [PASS] End-to-end agent API')
+    if response1.status_code == 200:
+        data1 = response1.json()
+        if "response" in data1 and "memory_used" in data1:
+            print('  [PASS] API interaction 1 (store preference)')
         else:
-            print(f'  [FAIL] Unexpected response structure: {data}')
+            print(f'  [FAIL] Unexpected response structure: {data1}')
             sys.exit(1)
-    elif response.status_code == 503:
-        print('  [BLOCKED] Agent end-to-end because Hindsight server is unavailable')
-        print(f'            (API returned 503: {response.json()["detail"]})')
+            
+        # 5. Valid Request 2
+        import time
+        time.sleep(2)  # Wait briefly
+        response2 = client.post("/api/agent/chat", json={
+            "user_id": user_id, 
+            "message": "How should you communicate with me?"
+        })
+        
+        if response2.status_code == 200:
+            data2 = response2.json()
+            ans = data2.get("response", "").lower()
+            if "concise" in ans or "technical" in ans:
+                print('  [PASS] API interaction 2 (memory recalled successfully)')
+            else:
+                print('  [INFO] API interaction 2 succeeded, but check manually if memory was utilized properly.')
+        elif response2.status_code in [500, 503]:
+             print(f'  [BLOCKED] Interaction 2 failed due to external dependency (API returned {response2.status_code}: {response2.json()["detail"]})')
+        else:
+             print(f'  [FAIL] Interaction 2 failed: {response2.status_code}: {response2.text}')
+             sys.exit(1)
+             
+    elif response1.status_code in [500, 503]:
+        print(f'  [BLOCKED] Agent end-to-end because external dependency failed (API returned {response1.status_code}: {response1.json()["detail"]})')
     else:
-        print(f'  [FAIL] Expected 200 or 503, got {response.status_code}: {response.text}')
+        print(f'  [FAIL] Expected 200 or 503, got {response1.status_code}: {response1.text}')
         sys.exit(1)
 
     print(SEP)

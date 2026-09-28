@@ -78,11 +78,19 @@ async def run_test() -> None:
         print('  [PASS] Agent executed (Interaction 1)')
         print(f"  [INFO] Memory used: {result1['memory_used']}")
         print(f"  [INFO] Assistant Response: {result1['response']}")
-    except HindsightMemoryError:
-        print('  [BLOCKED] Hindsight server is not available or connection refused.')
-        print('  Agent Core implementation loaded successfully, but end-to-end memory test cannot run.')
+    except HindsightMemoryError as exc:
+        err_msg = str(exc)
+        if "Failed to create bank" in err_msg:
+            print(f'  [FAIL] Bank creation failed: {exc}')
+        elif "Failed to recall memory" in err_msg or "Failed to store memory" in err_msg:
+            print(f'  [FAIL] Retain/recall error: {exc}')
+        else:
+            print(f'  [BLOCKED] Hindsight server is not available or connection refused: {exc}')
+            print('  Agent Core implementation loaded successfully, but end-to-end memory test cannot run.')
+            print(SEP)
+            sys.exit(0)
         print(SEP)
-        sys.exit(0)
+        sys.exit(1)
     except Exception as exc:
         print(f'  [FAIL] Agent execution failed on interaction 1: {exc}')
         print(SEP)
