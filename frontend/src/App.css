@@ -1,54 +1,98 @@
-* {
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #f0f4f9;
+  color: #1e293b;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── AMBIENT GRADIENT BACKGROUND (Neura AI Style) ── */
+.dejaops-app-shell {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: 
+    radial-gradient(circle at 10% 20%, rgba(224, 231, 255, 0.8) 0%, rgba(255, 255, 255, 0) 50%),
+    radial-gradient(circle at 90% 80%, rgba(220, 252, 231, 0.7) 0%, rgba(255, 255, 255, 0) 50%),
+    radial-gradient(circle at 50% 50%, rgba(243, 244, 246, 0.9) 0%, rgba(226, 232, 240, 0.8) 100%);
+  padding: 1rem;
   box-sizing: border-box;
 }
 
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  background-color: #f9fafb;
-}
-
-#root {
-  height: 100vh;
-  display: flex;
-}
-
-.app-container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
+/* ── MAIN FLOATING GLASS CONTAINER ── */
+.dejaops-glass-window {
   width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  background-color: white;
-  box-shadow: 0 0 10px rgba(0,0,0,0.05);
-}
-
-.main-content {
+  max-width: 1560px;
+  height: calc(100vh - 2rem);
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 24px;
+  box-shadow: 
+    0 20px 60px rgba(100, 116, 139, 0.08),
+    0 4px 16px rgba(0, 0, 0, 0.02);
   display: flex;
-  flex: 1;
-  overflow: hidden;
-  flex-direction: column;
-}
-
-.chat-section {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
   overflow: hidden;
 }
 
-.memory-section {
-  flex: 0 0 350px;
-  display: none;
+/* ── CENTER STAGE ── */
+.dejaops-center-stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: rgba(248, 250, 252, 0.4);
+  overflow: hidden;
 }
 
-/* Desktop layout */
-@media (min-width: 768px) {
-  .main-content {
-    flex-direction: row;
+.stage-view-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.chat-stage-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ── RESPONSIVE BREAKPOINTS ── */
+@media (max-width: 1200px) {
+  .hindsight-memory-panel {
+    display: none;
   }
-  .memory-section {
-    display: flex;
+}
+
+@media (max-width: 768px) {
+  .dejaops-app-shell {
+    padding: 0;
+  }
+
+  .dejaops-glass-window {
+    height: 100vh;
+    border-radius: 0;
+    border: none;
+  }
+
+  .dejaops-sidebar {
+    position: fixed;
+    z-index: 100;
+    left: 0;
+    top: 0;
+    bottom: 0;
   }
 }

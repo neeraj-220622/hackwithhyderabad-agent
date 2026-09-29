@@ -11,9 +11,11 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from backend.api.routes import router as api_router
 from backend.api.agent_routes import router as agent_router
+from backend.api.incident_routes import router as incident_router
 from backend.agent.llm import LLMService, LLMConfigError
 from backend.memory.hindsight import HindsightMemory, HindsightConfigError
 from backend.agent.agent import Agent
+from backend.incident.service import IncidentResponseService
 
 logger = logging.getLogger(__name__)
 
@@ -26,11 +28,14 @@ async def lifespan(app: FastAPI):
         memory = HindsightMemory()
         app.state.agent = Agent(llm=llm, memory=memory)
         app.state.memory = memory  # Keep reference for cleanup
-        logger.info("Agent Core initialized successfully.")
+        # Part 9 — Incident Response Service
+        app.state.incident_svc = IncidentResponseService(llm=llm, memory=memory)
+        logger.info("Agent Core and Incident Response Service initialized successfully.")
     except (LLMConfigError, HindsightConfigError) as e:
         logger.warning(f"Agent Core initialization skipped or failed: {e}")
         app.state.agent = None
         app.state.memory = None
+        app.state.incident_svc = None
     
     yield
     # Shutdown logic
@@ -61,3 +66,5 @@ app.add_middleware(
 # ---------------------------------------------------------------------------
 app.include_router(api_router, prefix="/api")
 app.include_router(agent_router, prefix="/api/agent", tags=["agent"])
+# Part 9 — Incident Response routes
+app.include_router(incident_router, prefix="/api/alerts", tags=["incident"])

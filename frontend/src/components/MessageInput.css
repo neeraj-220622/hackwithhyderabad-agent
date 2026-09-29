@@ -1,54 +1,90 @@
-.message-input-form {
+.message-input-wrapper {
+  padding: 0.75rem 1.5rem 1.25rem 1.5rem;
+  background: transparent;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.message-input-pill-container {
   display: flex;
-  gap: 1rem;
-  padding: 1rem 2rem;
-  background-color: white;
-  border-top: 1px solid #eaeaea;
-  align-items: flex-end;
+  align-items: center;
+  gap: 0.65rem;
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 28px;
+  padding: 0.4rem 0.5rem 0.4rem 0.65rem;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05), 0 2px 6px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
 }
 
-.message-textarea {
-  flex: 1;
-  resize: none;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  padding: 0.75rem;
-  font-family: inherit;
-  font-size: 0.9375rem;
-  line-height: 1.5;
-  max-height: 150px;
-  min-height: 24px;
-  outline: none;
-  transition: border-color 0.2s;
+.message-input-pill-container:focus-within {
+  border-color: #a5b4fc;
+  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.12);
 }
 
-.message-textarea:focus {
-  border-color: #2563eb;
-}
-
-.message-textarea:disabled {
-  background-color: #f3f4f6;
-  cursor: not-allowed;
-}
-
-.send-button {
-  background-color: #2563eb;
-  color: white;
+.pill-action-btn {
+  background: #f1f5f9;
   border: none;
-  border-radius: 8px;
-  padding: 0.75rem 1.5rem;
-  font-size: 0.9375rem;
-  font-weight: 500;
+  color: #64748b;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  height: 48px; /* Matches textarea single line height roughly */
-  transition: background-color 0.2s;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
 }
 
-.send-button:hover:not(:disabled) {
-  background-color: #1d4ed8;
+.pill-action-btn:hover {
+  background: #e2e8f0;
+  color: #1e293b;
 }
 
-.send-button:disabled {
-  background-color: #93c5fd;
+.message-text-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.9rem;
+  color: #1e293b;
+  font-family: inherit;
+  padding: 0.4rem 0.25rem;
+}
+
+.message-text-input::placeholder {
+  color: #94a3b8;
+}
+
+.pill-right-tools {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.pill-send-btn {
+  background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+  border: none;
+  color: #ffffff;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  transition: all 0.2s ease;
+}
+
+.pill-send-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+}
+
+.pill-send-btn:disabled {
+  background: #cbd5e1;
+  box-shadow: none;
   cursor: not-allowed;
 }

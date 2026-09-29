@@ -96,8 +96,11 @@ async def run_test() -> None:
         print(SEP)
         sys.exit(1)
 
-    # Small delay before next interaction
-    await asyncio.sleep(2)
+    # TEST-ONLY: wait for Groq TPM window to reset before Interaction 2.
+    # Hindsight's internal retain fact-extraction uses the same Groq TPM quota.
+    # This delay is NOT part of the application runtime — test workaround only.
+    print("\n  Waiting 70 seconds for Groq TPM window to reset before Interaction 2...")
+    await asyncio.sleep(70)
 
     # Interaction 2
     msg2 = "How should you communicate with me?"

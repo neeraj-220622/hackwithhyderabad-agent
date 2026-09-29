@@ -1,8 +1,10 @@
 import React, { useEffect, useRef } from "react";
 import ChatMessage from "./ChatMessage";
+import WelcomeState from "./WelcomeState";
+import { IconAlertTriangle } from "./Icons";
 import "./ChatWindow.css";
 
-export default function ChatWindow({ messages, isLoading, error }) {
+export default function ChatWindow({ messages, isLoading, error, onSelectPrompt }) {
   const endOfMessagesRef = useRef(null);
 
   useEffect(() => {
@@ -10,32 +12,33 @@ export default function ChatWindow({ messages, isLoading, error }) {
   }, [messages, isLoading, error]);
 
   return (
-    <div className="chat-window">
+    <div className="chat-window-container">
       {messages.length === 0 ? (
-        <div className="empty-state">
-          <h2>Welcome!</h2>
-          <p>Send a message to start chatting with the HackWithHyderabad Agent.</p>
-        </div>
+        <WelcomeState onSelectPrompt={onSelectPrompt} />
       ) : (
-        <div className="messages-list">
+        <div className="messages-scroll-area">
           {messages.map((msg, idx) => (
             <ChatMessage key={idx} message={msg} />
           ))}
-          
+
           {isLoading && (
-            <div className="loading-indicator">
-              <div className="typing-dot"></div>
-              <div className="typing-dot"></div>
-              <div className="typing-dot"></div>
+            <div className="agent-typing-row">
+              <div className="typing-orb-avatar" />
+              <div className="typing-bubble">
+                <div className="typing-dot" />
+                <div className="typing-dot" />
+                <div className="typing-dot" />
+              </div>
             </div>
           )}
 
           {error && (
-            <div className="error-message">
-              <span className="error-icon">⚠️</span>
-              {error}
+            <div className="chat-error-banner">
+              <IconAlertTriangle size={18} />
+              <span>{error}</span>
             </div>
           )}
+
           <div ref={endOfMessagesRef} />
         </div>
       )}
