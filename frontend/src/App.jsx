@@ -114,7 +114,7 @@ function App() {
         {/* 2. MAIN CENTER AREA */}
         <main className="dejaops-center-stage">
           <TopHeader
-            title="DejaOps Agent"
+            title="RECALL Agent"
             hindsightConnected={hindsightConnected}
           />
 

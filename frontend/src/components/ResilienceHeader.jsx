@@ -30,7 +30,7 @@ export default function ResilienceHeader({ activeTab, onSelectTab }) {
         <div className="header-title">
           <IconShield size={22} className="title-icon" />
           <div>
-            <h1>DEJAOPS — INCIDENT RESPONSE AGENT</h1>
+            <h1>RECALL — AI-POWERED INCIDENT RESPONSE AGENT</h1>
             <span className="subtitle">Hindsight-Powered On-Call Incident Intelligence</span>
           </div>
         </div>

@@ -19,7 +19,7 @@ export default function ChatMessage({ message }) {
 
       <div className="message-content-col">
         <div className="sender-meta">
-          <span className="sender-name">{isUser ? "You" : "DejaOps Agent"}</span>
+          <span className="sender-name">{isUser ? "You" : "RECALL Agent"}</span>
           {!isUser && message.memory_used && (
             <span className="memory-badge">
               <IconBrain size={12} />

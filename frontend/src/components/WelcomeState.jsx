@@ -19,7 +19,7 @@ export default function WelcomeState({ onSelectPrompt }) {
       </div>
 
       {/* ── WELCOME HEADING ── */}
-      <h2 className="welcome-heading">Welcome to DejaOps</h2>
+      <h2 className="welcome-heading">Welcome to RECALL</h2>
       <p className="welcome-subtext">
         Your AI incident-response engineer. Investigate incidents, recall previous resolutions, avoid failed fixes, and learn from every resolution.
       </p>

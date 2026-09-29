@@ -41,7 +41,7 @@ export default function MessageInput({ onSendMessage, disabled, onOpenIntake }) 
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Describe an incident or ask DejaOps to investigate..."
+          placeholder="Describe an incident or ask RECALL to investigate..."
           disabled={disabled}
         />
 

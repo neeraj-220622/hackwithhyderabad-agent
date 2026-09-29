@@ -1,11 +1,11 @@
 import React from "react";
 import "./TopHeader.css";
 
-export default function TopHeader({ title = "DejaOps Agent", hindsightConnected = true }) {
+export default function TopHeader({ title = "RECALL Agent", hindsightConnected = true }) {
   return (
     <header className="top-header">
       <div className="header-left">
-        <h1 className="header-title">DejaOps Agent</h1>
+        <h1 className="header-title">RECALL Agent</h1>
       </div>
 
       <div className="header-right">

@@ -30,8 +30,8 @@ export default function Sidebar({ activeTab, onSelectTab, onNewChat, collapsed, 
         <div className="brand-badge">
           <div className="brand-logo-orb" />
           <div className="brand-text">
-            <span className="brand-name">DEJAOPS</span>
-            <span className="brand-sub">Incident Response Agent</span>
+            <span className="brand-name">RECALL</span>
+            <span className="brand-sub">AI-Powered Incident Response Agent</span>
           </div>
         </div>
         <button

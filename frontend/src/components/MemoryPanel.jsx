@@ -58,7 +58,7 @@ export default function MemoryPanel({ memories = [], loading = false, error = nu
             <IconBrain size={28} className="empty-icon" />
             <p className="empty-title">No incident selected</p>
             <p className="empty-sub">
-              Memories will appear here when DejaOps investigates an incident.
+              Memories will appear here when RECALL investigates an incident.
             </p>
           </div>
         )}
